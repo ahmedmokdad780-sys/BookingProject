@@ -33,4 +33,9 @@ class Apartment extends Model
         return $this->belongsToMany(User::class, 'favorites')
             ->withTimestamps();
     }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

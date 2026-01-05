@@ -8,45 +8,45 @@ use Illuminate\Support\Facades\Auth;
 
 class OwnerBookingController extends Controller
 {
-   public function approve($id)
-{
-    $booking = Booking::with(['apartment', 'user'])
-        ->whereHas('apartment', fn($q) => $q->where('user_id', Auth::id()))
-        ->findOrFail($id);
+    public function approve($id)
+    {
+        $booking = Booking::with(['apartment', 'user'])
+            ->whereHas('apartment', fn($q) => $q->where('user_id', Auth::id()))
+            ->findOrFail($id);
 
-    $tenant = $booking->user;
-    $owner  = $booking->apartment->user;
-    $amount = $booking->total_price;
+        $tenant = $booking->user;
+        $owner  = $booking->apartment->user;
+        $amount = $booking->total_price;
 
-    // التحقق من رصيد المستأجر
-    if ($tenant->balance < $amount) {
+        // التحقق من رصيد المستأجر
+        if ($tenant->balance < $amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'رصيد المستأجر غير كافٍ لإتمام الحجز.'
+            ], 400);
+        }
+
+        // خصم من المستأجر
+        $tenant->balance -= $amount;
+        $tenant->save();
+
+        // إضافة للمؤجر
+        $owner->balance += $amount;
+        $owner->save();
+
+        // تغيير حالة الحجز
+        $booking->status = 'approved';
+        $booking->save();
+
+        // إرسال الإشعار
+        NotificationService::bookingApproved($booking);
+
         return response()->json([
-            'success' => false,
-            'message' => 'رصيد المستأجر غير كافٍ لإتمام الحجز.'
-        ], 400);
+            'success' => true,
+            'message' => 'تمت الموافقة على الحجز وتم خصم الرصيد من المستأجر وإضافته للمؤجر.',
+            'booking' => $booking
+        ]);
     }
-
-    // خصم من المستأجر
-    $tenant->balance -= $amount;
-    $tenant->save();
-
-    // إضافة للمؤجر
-    $owner->balance += $amount;
-    $owner->save();
-
-    // تغيير حالة الحجز
-    $booking->status = 'approved';
-    $booking->save();
-
-    // إرسال الإشعار
-    NotificationService::bookingApproved($booking);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'تمت الموافقة على الحجز وتم خصم الرصيد من المستأجر وإضافته للمؤجر.',
-        'booking' => $booking
-    ]);
-}
 
 
     public function reject($id)
@@ -61,6 +61,24 @@ class OwnerBookingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'تم رفض الحجز'
+        ]);
+    }
+
+    public function index()
+    {
+        $bookings = Booking::with([
+            'user:id,name',
+            'apartment:id,name,price'
+        ])
+            ->whereHas('apartment', function ($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->whereIn('status', ['pending', 'تم التقييم'])->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
         ]);
     }
 }

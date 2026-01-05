@@ -43,11 +43,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{id}/rate', [BookingController::class, 'rate']);
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
 });
+Route::get('/apartments/{id}/booked-dates', [BookingController::class, 'ShowbookedDates']);
 
 // owner
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/owner/bookings/{id}/approve', [OwnerBookingController::class, 'approve']);
     Route::post('/owner/bookings/{id}/reject', [OwnerBookingController::class, 'reject']);
+    Route::get('/owner/bookings', [OwnerBookingController::class, 'index']);
 });
 
 // notifications

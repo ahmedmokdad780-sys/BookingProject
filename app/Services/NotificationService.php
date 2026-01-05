@@ -7,13 +7,14 @@ use App\Models\Notifications;
 
 class NotificationService
 {
-    private static function send($userId, $title, $body)
+    private static function send($userId, $title, $body, $type, $bookingId = null)
     {
-       Notifications::create([
-            'user_id' => $userId,
-            'title'   => $title,
-            'body'    => $body,
-            'type'    => 'booking'
+        Notifications::create([
+            'user_id'    => $userId,
+            'booking_id' => $bookingId,
+            'title'      => $title,
+            'body'       => $body,
+            'type'       => $type,
         ]);
     }
 
@@ -23,7 +24,9 @@ class NotificationService
         self::send(
             $booking->user_id,
             'الحجز قيد الانتظار',
-            'طلب الحجز قيد المراجعة من صاحب الشقة'
+            'تم إرسال طلب الحجز وبانتظار موافقة صاحب الشقة',
+            'booking_pending',
+            $booking->id
         );
     }
 
@@ -31,8 +34,10 @@ class NotificationService
     {
         self::send(
             $booking->user_id,
-            'تم الحجز بنجاح',
-            'تمت الموافقة على طلب الحجز'
+            'تمت الموافقة على الحجز',
+            'وافق صاحب الشقة على طلب الحجز',
+            'booking_approved',
+            $booking->id
         );
     }
 
@@ -41,7 +46,9 @@ class NotificationService
         self::send(
             $booking->user_id,
             'تم رفض الحجز',
-            'نأسف، تم رفض طلب الحجز'
+            'قام صاحب الشقة برفض طلب الحجز',
+            'booking_rejected',
+            $booking->id
         );
     }
 
@@ -50,7 +57,9 @@ class NotificationService
         self::send(
             $booking->user_id,
             'تم إلغاء الحجز',
-            'تم إلغاء الحجز بنجاح'
+            'تم إلغاء الحجز بنجاح',
+            'booking_cancelled',
+            $booking->id
         );
     }
 
@@ -59,17 +68,21 @@ class NotificationService
         self::send(
             $booking->user_id,
             'تم تعديل الحجز',
-            'تم تعديل تفاصيل الحجز'
+            'تم تعديل الحجز وبانتظار موافقة صاحب الشقة',
+            'booking_updated',
+            $booking->id
         );
     }
 
-    // ===== صاحب الشقة =====
+    // ===== المؤجر =====
     public static function notifyOwnerNewBooking(Booking $booking)
     {
         self::send(
             $booking->apartment->user_id,
             'طلب حجز جديد',
-            'تم طلب حجز على شقتك'
+            'لديك طلب حجز جديد على شقتك',
+            'owner_new_booking',
+            $booking->id
         );
     }
 
@@ -78,7 +91,31 @@ class NotificationService
         self::send(
             $booking->apartment->user_id,
             'تعديل حجز',
-            'قام المستأجر بتعديل طلب الحجز'
+            'قام المستأجر بتعديل الحجز',
+            'owner_booking_updated',
+            $booking->id
+        );
+    }
+
+    public static function notifyOwnerBookingApproved(Booking $booking)
+    {
+        self::send(
+            $booking->apartment->user_id,
+            'تمت الموافقة على الحجز',
+            'قمت بالموافقة على الحجز',
+            'owner_booking_approved',
+            $booking->id
+        );
+    }
+
+    public static function notifyOwnerBookingRejected(Booking $booking)
+    {
+        self::send(
+            $booking->apartment->user_id,
+            'تم رفض الحجز',
+            'قمت برفض الحجز',
+            'owner_booking_rejected',
+            $booking->id
         );
     }
 
@@ -86,8 +123,10 @@ class NotificationService
     {
         self::send(
             $booking->apartment->user_id,
-            'إلغاء حجز',
-            'قام المستأجر بإلغاء الحجز'
+            ' تم الغاء الحجز على شقتط',
+            'owner_booking_cancelled',
+            $booking->id
         );
     }
+
 }

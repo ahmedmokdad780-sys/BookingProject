@@ -50,6 +50,30 @@ class BookingController extends Controller
         $end   = Carbon::parse($request->end_date);
         $days = $start->diffInDays($end) + 1;
 
+        $start = Carbon::parse($request->start_date);
+        $end   = Carbon::parse($request->end_date);
+
+        // 🔴 تحقق من تضارب الحجز
+        $hasConflict = Booking::where('apartment_id', $request->apartment_id)
+            ->whereIn('status', ['approved', 'pending'])
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('start_date', [$start, $end])
+                    ->orWhereBetween('end_date', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_date', '<=', $start)
+                            ->where('end_date', '>=', $end);
+                    });
+            })
+            ->exists();
+
+        if ($hasConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يوجد تضارب مع حجز آخر في هذه الفترة'
+            ], 409);
+        }
+
+
         $booking = Booking::create([
             'user_id'      => Auth::id(), // ✅ المستأجر
             'apartment_id' => $apartment->id,
@@ -80,6 +104,28 @@ class BookingController extends Controller
                 'success' => false,
                 'message' => 'لا يمكن تعديل هذا الحجز'
             ], 403);
+        }
+        $start = Carbon::parse($request->start_date);
+        $end   = Carbon::parse($request->end_date);
+
+        $hasConflict = Booking::where('apartment_id', $booking->apartment_id)
+            ->where('id', '!=', $booking->id) // ❗ استثناء الحجز الحالي
+            ->whereIn('status', ['approved', 'pending'])
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('start_date', [$start, $end])
+                    ->orWhereBetween('end_date', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_date', '<=', $start)
+                            ->where('end_date', '>=', $end);
+                    });
+            })
+            ->exists();
+
+        if ($hasConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن تعديل الحجز بسبب تضارب في التواريخ'
+            ], 409);
         }
 
         $booking->update([
@@ -148,5 +194,30 @@ class BookingController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'شكراً لتقييمك!']);
+    }
+    /******** Show date*/
+    public function ShowbookedDates($apartmentId)
+    {
+        $apartment = Apartment::with(['bookings' => function ($q) {
+            $q->whereIn('status', ['approved', 'pending']);
+        }])->findOrFail($apartmentId);
+
+        $dates = [];
+
+        foreach ($apartment->bookings as $booking) {
+            $start = Carbon::parse($booking->start_date);
+            $end   = Carbon::parse($booking->end_date);
+
+            while ($start->lte($end)) {
+                $dates[] = $start->format('Y-m-d');
+                $start->addDay();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'apartment_id' => $apartmentId,
+            'booked_dates' => array_values(array_unique($dates))
+        ]);
     }
 }

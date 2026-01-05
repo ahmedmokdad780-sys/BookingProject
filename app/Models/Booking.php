@@ -13,6 +13,8 @@ class Booking extends Model
         'end_date',
         'status',
         'total_price',
+        'rating',
+        'comment',
     ];
 
     public function apartment()
@@ -20,8 +22,7 @@ class Booking extends Model
         return $this->belongsTo(Apartment::class);
     }
     public function user()
-{
-    return $this->belongsTo(User::class);
-}
-
+    {
+        return $this->belongsTo(User::class);
+    }
 }

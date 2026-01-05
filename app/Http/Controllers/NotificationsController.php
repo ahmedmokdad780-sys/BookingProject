@@ -28,13 +28,23 @@ class NotificationsController extends Controller
 
     public function markAsRead($id)
     {
+
         $notification = Notifications::where('user_id', Auth::id())
-            ->findOrFail($id);
+            ->where('id', $id)
+            ->first();
+
+        if (!$notification) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Notification not found'
+            ], 404);
+        }
 
         $notification->update(['is_read' => true]);
 
         return response()->json(['success' => true]);
     }
+
 
     public function markAllAsRead()
     {
