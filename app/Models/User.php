@@ -57,5 +57,9 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-  
+    public function favorites()
+    {
+        return $this->belongsToMany(Apartment::class, 'favorites')
+            ->withTimestamps();
+    }
 }

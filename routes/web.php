@@ -19,5 +19,6 @@ Route::middleware(['auth','admin'])->prefix('admin')->group(function(){
     Route::get('/approve/{id}',[AdminController::class,'approveUser'])->name('admin.approve');
     Route::get('/reject/{id}',[AdminController::class,'rejectUser'])->name('admin.reject');
     Route::get('/toggle/{id}',[AdminController::class,'toggleStatus'])->name('admin.toggle');
+     Route::post('/users/{id}/add-balance', [AdminController::class, 'addBalance'])->name('admin.users.addBalance');
 });
 

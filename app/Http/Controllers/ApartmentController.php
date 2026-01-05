@@ -38,6 +38,15 @@ class ApartmentController extends Controller
 
     public function store(Request $request)
     {
+
+
+        if (Auth::user()->account_type !== 'owner') {
+            return response()->json([
+                'status' => false,
+                'message' => 'عذراً، صلاحية إضافة الشقق متاحة للمؤجرين فقط.'
+            ], 403);
+        }
+
         $request->validate([
             'name' => 'required',
             'governorate' => 'required',
@@ -49,12 +58,12 @@ class ApartmentController extends Controller
             'area' => 'required',
             'price' => 'required',
             'description' => 'required',
-            'images.*' => 'image|mimes:jpg,png|max:2048'
+            'images.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
 
         $apartment = Apartment::create([
-            'user_id' => Auth::id(), // ← لا تستخدم auth()->id()
+            'user_id' => Auth::id(), 
             'name' => $request->name,
             'governorate' => $request->governorate,
             'city' => $request->city,

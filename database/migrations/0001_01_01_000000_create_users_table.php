@@ -14,11 +14,12 @@ return new class extends Migration {
             $table->string('phone')->unique();
             $table->string('password');
             $table->date('birthdate');
-            $table->enum('account_type',['owner','tenant','admin'])->default('tenant');
-            $table->enum('status',['pending','approved','rejected'])->default('pending');
+            $table->enum('account_type', ['owner', 'tenant', 'admin'])->default('tenant');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->string('national_id_image');
             $table->string('personal_image');
             $table->boolean('is_active')->default(false);
+            $table->decimal('balance', 10, 2)->default(0);
             $table->timestamp('approved_at')->nullable();
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->rememberToken();
@@ -30,4 +31,7 @@ return new class extends Migration {
     {
         Schema::dropIfExists('users');
     }
+
+
+    
 };

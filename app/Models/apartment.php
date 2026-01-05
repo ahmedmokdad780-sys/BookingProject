@@ -19,11 +19,18 @@ class Apartment extends Model
         'price',
         'description',
     ];
-
     public function images()
     {
         return $this->hasMany(ApartmentImage::class);
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
-    
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+            ->withTimestamps();
+    }
 }

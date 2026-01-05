@@ -13,7 +13,9 @@
             <th>الجوال</th>
             <th>النوع</th>
             <th>الحالة</th>
+            <th>الرصيد</th>
             <th>التفعيل</th>
+            <th>الإجراءات</th>
         </tr>
     </thead>
     <tbody>
@@ -24,11 +26,21 @@
             <td>{{ $user->phone }}</td>
             <td>{{ $user->account_type }}</td>
             <td>{{ $user->status }}</td>
+            <td>{{ $user->balance }}</td>
             <td>
                 <a href="{{ route('admin.toggle',$user->id) }}"
                    class="btn btn-sm {{ $user->is_active ? 'btn-danger' : 'btn-success' }}">
                    {{ $user->is_active ? 'تعطيل' : 'تفعيل' }}
                 </a>
+            </td>
+            <td>
+                @if($user->account_type === 'tenant')
+                    <form action="{{ route('admin.users.addBalance', $user->id) }}" method="POST" style="display:inline-block;">
+                        @csrf
+                        <input type="number" name="amount" step="0.01" placeholder="المبلغ" required style="width:80px;">
+                        <button type="submit" class="btn btn-sm btn-primary">شحن</button>
+                    </form>
+                @endif
             </td>
         </tr>
         @endforeach
