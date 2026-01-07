@@ -4,23 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Booking extends Model
+class Review extends Model
 {
     protected $fillable = [
         'user_id',
         'apartment_id',
-        'start_date',
-        'end_date',
-        'status',
-        'total_price',
+        'booking_id',
+        'rating',
+        'comment'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function apartment()
     {
         return $this->belongsTo(Apartment::class);
-    }
-    public function user()
-    {
-        return $this->belongsTo(User::class);
     }
 }

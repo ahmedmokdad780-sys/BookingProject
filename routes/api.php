@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
 });
 Route::get('/apartments/{id}/booked-dates', [BookingController::class, 'ShowbookedDates']);
+Route::get('apartments/{id}/rating', [BookingController::class, 'getApartmentStats']);
 
 // owner
 Route::middleware('auth:sanctum')->group(function () {

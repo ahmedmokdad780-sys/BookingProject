@@ -123,7 +123,7 @@ class NotificationService
     {
         self::send(
             $booking->apartment->user_id,
-            ' تم الغاء الحجز على شقتط',
+            ' تم الغاء الحجز على شقتك',
             'owner_booking_cancelled',
             $booking->id
         );

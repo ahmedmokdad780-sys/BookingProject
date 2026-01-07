@@ -14,36 +14,33 @@ class OwnerBookingController extends Controller
             ->whereHas('apartment', fn($q) => $q->where('user_id', Auth::id()))
             ->findOrFail($id);
 
+        if ($booking->status === 'approved') {
+            return response()->json(['message' => 'هذا الحجز تمت الموافقة عليه مسبقاً.'], 400);
+        }
+
         $tenant = $booking->user;
         $owner  = $booking->apartment->user;
         $amount = $booking->total_price;
 
-        // التحقق من رصيد المستأجر
         if ($tenant->balance < $amount) {
             return response()->json([
                 'success' => false,
-                'message' => 'رصيد المستأجر غير كافٍ لإتمام الحجز.'
+                'message' => 'لم يعد رصيد المستأجر كافياً لإتمام العملية حالياً.'
             ], 400);
         }
 
-        // خصم من المستأجر
+
         $tenant->balance -= $amount;
         $tenant->save();
-
-        // إضافة للمؤجر
         $owner->balance += $amount;
         $owner->save();
-
-        // تغيير حالة الحجز
         $booking->status = 'approved';
         $booking->save();
-
-        // إرسال الإشعار
         NotificationService::bookingApproved($booking);
 
         return response()->json([
             'success' => true,
-            'message' => 'تمت الموافقة على الحجز وتم خصم الرصيد من المستأجر وإضافته للمؤجر.',
+            'message' => 'تمت الموافقة بنجاح وتم تحويل المبلغ للمالك.',
             'booking' => $booking
         ]);
     }
@@ -54,6 +51,9 @@ class OwnerBookingController extends Controller
         $booking = Booking::with('apartment')
             ->whereHas('apartment', fn($q) => $q->where('user_id', Auth::id()))
             ->findOrFail($id);
+             if ($booking->status === 'rejected') {
+            return response()->json(['message' => 'هذا الحجز تم رفضه مسبقاً.'], 400);
+        }
 
         $booking->update(['status' => 'rejected']);
         NotificationService::bookingRejected($booking);
@@ -73,7 +73,7 @@ class OwnerBookingController extends Controller
             ->whereHas('apartment', function ($q) {
                 $q->where('user_id', Auth::id());
             })
-            ->whereIn('status', ['pending', 'تم التقييم'])->latest()
+            ->whereIn('status', ['pending', 'شكراً لتقييمك!'])->latest()
             ->get();
 
         return response()->json([
