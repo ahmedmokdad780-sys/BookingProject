@@ -43,16 +43,16 @@ class ProfileController extends Controller
 
         if ($request->hasFile('personal_image')) {
 
-            // حذف الصورة القديمة من التخزين إذا وجدت لتوفير المساحة
+
             if ($user->personal_image && Storage::disk('public')->exists($user->personal_image)) {
                 Storage::disk('public')->delete($user->personal_image);
             }
 
-            // تخزين الصورة الجديدة في المجلد المخصص
+
             $path = $request->file('personal_image')
                 ->store('uploads/personal_images', 'public');
 
-            // تحديث مسار الصورة في قاعدة البيانات
+          
             $user->update([
                 'personal_image' => $path,
             ]);

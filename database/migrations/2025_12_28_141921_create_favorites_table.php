@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('apartment_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
-            $table->unique(['user_id', 'apartment_id']); // ⭐ شقة واحدة مرة واحدة
+            $table->unique(['user_id', 'apartment_id']); 
         });
     }
 

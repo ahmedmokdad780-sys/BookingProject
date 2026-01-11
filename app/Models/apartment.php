@@ -30,8 +30,7 @@ class Apartment extends Model
 
     public function favoritedBy()
     {
-        return $this->belongsToMany(User::class, 'favorites')
-            ->withTimestamps();
+        return $this->belongsToMany(User::class, 'favorites', 'apartment_id', 'user_id');
     }
 
     public function bookings()
@@ -41,5 +40,20 @@ class Apartment extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    protected $appends = ['is_favorited'];
+
+    public function getIsFavoritedAttribute()
+    {
+        $userId = auth('sanctum')->id();
+
+        if ($userId) {
+            return $this->favoritedBy()
+                ->where('user_id', $userId)
+                ->exists();
+        }
+
+        return false;
     }
 }

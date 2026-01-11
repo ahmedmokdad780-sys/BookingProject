@@ -248,25 +248,23 @@ class BookingController extends Controller
     public function ShowbookedDates($apartmentId)
     {
         $apartment = Apartment::with(['bookings' => function ($q) {
-            $q->whereIn('status', ['approved', 'pending']);
+            $q->whereIn('status', ['approved', 'pending'])
+                ->orderBy('start_date', 'asc');
         }])->findOrFail($apartmentId);
 
-        $dates = [];
+        $formattedBookings = [];
 
         foreach ($apartment->bookings as $booking) {
-            $start = Carbon::parse($booking->start_date);
-            $end   = Carbon::parse($booking->end_date);
-
-            while ($start->lte($end)) {
-                $dates[] = $start->format('Y-m-d');
-                $start->addDay();
-            }
+            $formattedBookings[] = [
+                'from' => \Carbon\Carbon::parse($booking->start_date)->format('Y-m-d'),
+                'to'   => \Carbon\Carbon::parse($booking->end_date)->format('Y-m-d'),
+            ];
         }
 
         return response()->json([
             'success' => true,
             'apartment_id' => $apartmentId,
-            'booked_dates' => array_values(array_unique($dates))
+            'booked_periods' => $formattedBookings
         ]);
     }
 }

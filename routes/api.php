@@ -27,8 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update-image', [ProfileController::class, 'updateImage']);
 });
 /****************/
-Route::get('/apartments', [ApartmentController::class, 'index']);
-Route::get('/apartments/{id}', [ApartmentController::class, 'show']);
 Route::middleware('auth:sanctum')->post(
     '/apartments',
     [ApartmentController::class, 'store']
@@ -66,4 +64,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/favorites/{apartment}', [FavoriteController::class, 'toggle']);
     Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::get('/apartments', [ApartmentController::class, 'index']);
+    Route::get('/apartments/{id}', [ApartmentController::class, 'show']);
 });
