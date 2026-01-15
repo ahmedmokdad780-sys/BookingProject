@@ -161,7 +161,6 @@ class BookingController extends Controller
             ->findOrFail($id);
 
         if ($booking->status === 'approved') {
-
             $tenant = $booking->user;
             $owner  = $booking->apartment->user;
             $amount = $booking->total_price;
@@ -220,7 +219,8 @@ class BookingController extends Controller
             'data' => [
                 'id' => $review->id,
                 'user_name' => Auth::user()->name . ' ' . Auth::user()->last_name,
-                'rating' => $review->rating
+                'rating' => $review->rating,
+                'apartment_id' => $review->apartment_id
             ]
         ]);
     }
